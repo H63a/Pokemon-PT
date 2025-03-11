@@ -67,6 +67,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (provider.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                if (provider.errorMessage != null) {
+                  return Center(
+                    child: Text(
+                      provider.errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 16),
+                    ),
+                  );
+                }
                 if (provider.pokedex.isEmpty) {
                   return const Center(
                     child: Text(
