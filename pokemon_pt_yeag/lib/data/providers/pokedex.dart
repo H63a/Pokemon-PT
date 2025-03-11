@@ -5,17 +5,19 @@ import 'package:pokemon_pt_yeag/data/models/species.dart';
 import 'package:pokemon_pt_yeag/data/services/pokedex.dart';
 
 class PokedexProvider with ChangeNotifier {
+  String? _errorMessage;
   bool _isLoading = false;
   String _searchQuery = '';
   List<Result> _pokedex = [];
-  final Map<String, Pokemon> _pokemonData = {};
-  final Map<String, PokemonSpecies> _pokemonSpeciesData = {};
   bool _isSortedByName = false;
   final PokedexService service;
+  final Map<String, Pokemon> _pokemonData = {};
+  final Map<String, PokemonSpecies> _pokemonSpeciesData = {};
 
   PokedexProvider(this.service);
 
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
   bool get isSortedByName => _isSortedByName;
   Map<String, Pokemon> get pokemonData => _pokemonData;
   Map<String, PokemonSpecies> get pokemonSpeciesData => _pokemonSpeciesData;
@@ -45,8 +47,15 @@ class PokedexProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void _setError(String message) {
+    _errorMessage = message;
+    _isLoading = false;
+    notifyListeners();
+  }
+
   Future<void> fetchPokedex() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
@@ -54,6 +63,7 @@ class PokedexProvider with ChangeNotifier {
       await fetchAllPokemonData();
     } catch (e) {
       //Manage errors
+      _setError('Failed to load Pokémon list: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -74,9 +84,11 @@ class PokedexProvider with ChangeNotifier {
       final speciesUrl = pokemon.species.url;
       final speciesData = await service.getPokemonSpeciesData(speciesUrl);
       _pokemonSpeciesData[pokemon.name] = speciesData;
+
       notifyListeners();
     } catch (e) {
       //Manage errors
+      _setError('Error loading Pokémon data: $e');
     }
   }
 }
